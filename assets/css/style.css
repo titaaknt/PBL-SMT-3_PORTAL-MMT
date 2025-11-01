@@ -1,0 +1,119 @@
+/* === STYLE GLOBAL PORTAL MMT === */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  line-height: 1.6;
+  overflow-x: hidden; /* biar ga bisa geser horizontal */
+}
+
+/* ---- Navbar ---- */
+.navbar {
+  background-color: #0056A6;
+  padding: 0.7rem 1rem;
+}
+
+.navbar-brand img {
+  height: 45px;
+}
+
+.navbar-brand div {
+  line-height: 1.1;
+}
+
+.nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.nav-link:hover {
+  color: #ffc107 !important;
+}
+
+/* ---- Section Umum ---- */
+section {
+  padding: 3rem 1rem;
+}
+
+/* Biar nggak terlalu lebar di desktop */
+.container-lg {
+  max-width: 1140px;
+}
+
+/* ---- Judul Section ---- */
+h3, h2 {
+  font-weight: 700;
+  color: #0056A6;
+}
+
+/* ---- Card Style ---- */
+.card {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ---- Footer ---- */
+footer, .contact-section {
+  background-color: #0056A6;
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+footer a {
+  color: #FFD700;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* ---- Responsiveness ---- */
+@media (max-width: 992px) {
+  .navbar-brand img {
+    height: 40px;
+  }
+  .navbar-brand div {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 768px) {
+  section {
+    padding: 2rem 1.2rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+  .hero-content h1 {
+    font-size: 1.8rem !important;
+  }
+  .hero-content p {
+    font-size: 1rem !important;
+  }
+  footer {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand img {
+    height: 35px;
+  }
+  .navbar-brand div {
+    font-size: 12px;
+  }
+  section {
+    padding: 1.5rem 0.8rem;
+  }
+}
