@@ -11,7 +11,7 @@
         <p>Politeknik Negeri Malang</p>
         <div class="mt-3 d-flex justify-content-center justify-content-md-start gap-3">
           <img src="assets/img/jti.png" alt="Logo JTI" class="footer-logo">
-          <img src="assets/img/polinema.png" alt="Logo Polinema" class="footer-logo">
+          <img src="assets/img/logopolinema.png" alt="Logo Polinema" class="footer-logo">
         </div>
       </div>
 
@@ -20,7 +20,7 @@
         <h6 class="fw-bold text-warning mb-3">Kontak Kami</h6>
         <p><i class="bi bi-geo-alt-fill"></i> Jalan Soekarno Hatta No.9, Malang</p>
         <p><i class="bi bi-envelope-fill"></i> lab.mmt@polinema.ac.id</p>
-        <p><i class="bi bi-telephone-fill"></i> (0341) 404424 ext. 231</p>
+        <p><i class="bi bi-telephone-fill"></i> (0341) 404424 Fax. (0341) 404420 </p>
       </div>
 
       <!-- Kolom 3: Lokasi -->

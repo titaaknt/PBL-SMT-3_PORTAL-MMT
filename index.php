@@ -11,15 +11,20 @@
 </section>
 
 <!-- Tentang Laboratorium -->
-<section class="container my-5">
+<section class="container my-5 text-center">
   <h3 class="fw-bold text-primary mb-3">Tentang Laboratorium</h3>
-  <p>
+
+  <!-- GAMBAR LOGO DITAMBAHKAN DI SINI -->
+  <img src="assets/img/logolabmmt.png" alt="Logo Lab MMT" class="img-fluid mb-4" style="max-width:180px;">
+
+  <p class="mx-auto" style="max-width: 900px;">
     Laboratorium Multimedia dan Mobile Tech merupakan salah satu laboratorium di Jurusan Teknologi Informasi Polinema
     yang berfokus pada bidang pengembangan aplikasi berbasis multimedia, mobile, serta teknologi interaktif.
     Di laboratorium ini, mahasiswa belajar dan berkolaborasi untuk menghasilkan karya inovatif seperti
     aplikasi mobile, media interaktif, game edukasi, serta penelitian berbasis AR/VR.
   </p>
-  <p>
+
+  <p class="mx-auto" style="max-width: 900px;">
     Melalui kegiatan riset, praktikum, dan proyek berbasis industri, laboratorium ini menjadi wadah mahasiswa
     untuk mengasah kemampuan teknis dan kreatif dalam menghadapi tantangan era digital.
   </p>
@@ -38,7 +43,8 @@
         echo '
         <div class="col-md-4 mb-4">
           <div class="card shadow-sm h-100 border-0">
-            <img src="assets/img/'.$data['gambar'].'" class="card-img-top" alt="'.$data['judul'].'" style="height:220px;object-fit:cover;">
+            <img src="assets/img/'.$data['gambar'].'" class="card-img-top"
+                 alt="'.$data['judul'].'" style="height:220px;object-fit:cover;">
             <div class="card-body">
               <h5 class="card-title text-primary">'.$data['judul'].'</h5>
               <p class="card-text text-muted">'.substr($data['deskripsi'],0,80).'...</p>
@@ -48,6 +54,16 @@
     }
     ?>
   </div>
+
+  <?php
+  $countK = pg_query($conn, "SELECT COUNT(*) AS cnt FROM karya");
+  $cK = pg_fetch_assoc($countK);
+  if ($cK && (int)$cK['cnt'] > 0) {
+    echo '<div class="d-flex justify-content-center mt-3">
+            <a href="karya.php" class="btn btn-primary btn-lg px-4">Baca Selengkapnya</a>
+          </div>';
+  }
+  ?>
 </section>
 
 <!-- Berita Terbaru -->
@@ -63,7 +79,8 @@
         echo '
         <div class="col-md-4 mb-4">
           <div class="card shadow-sm h-100 border-0">
-            <img src="assets/img/'.$data['gambar'].'" class="card-img-top" alt="'.$data['judul'].'" style="height:200px;object-fit:cover;">
+            <img src="assets/img/'.$data['gambar'].'" class="card-img-top"
+                 alt="'.$data['judul'].'" style="height:200px;object-fit:cover;">
             <div class="card-body">
               <h5 class="card-title text-primary">'.$data['judul'].'</h5>
               <small class="text-muted">'.date('d M Y', strtotime($data['tanggal'])).'</small>
@@ -73,6 +90,16 @@
     }
     ?>
   </div>
+
+  <?php
+  $countB = pg_query($conn, "SELECT COUNT(*) AS cnt FROM berita");
+  $cB = pg_fetch_assoc($countB);
+  if ($cB && (int)$cB['cnt'] > 0) {
+    echo '<div class="d-flex justify-content-center mt-3">
+            <a href="berita.php" class="btn btn-primary btn-lg px-4">Baca Selengkapnya</a>
+          </div>';
+  }
+  ?>
 </section>
 
 <!-- Kontak -->
@@ -89,7 +116,7 @@
 
 <?php include 'includes/footer.php'; ?>
 
-<!-- STYLE UNTUK HERO -->
+<!-- STYLE -->
 <style>
 .hero-section {
   height: 75vh;
@@ -129,9 +156,25 @@
   background: #ffc107;
   color: #fff;
 }
+
 .contact-section {
-  background-color: #0056A6;
+  background-color: #2D5172;
+  padding: 60px 0;
+  margin: 0;
+  border: none;
 }
+.contact-section + footer {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+section {
+  margin-bottom: 0 !important;
+}
+footer {
+  margin-top: 0 !important;
+  padding-top: 20px;
+}
+
 @media (max-width: 768px) {
   .hero-content h1 {
     font-size: 1.8rem;

@@ -1,8 +1,3 @@
-<?php
-include '../includes/config.php';
-include '../includes/auth.php';
-?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -115,13 +110,13 @@ include '../includes/auth.php';
   <nav class="navbar navbar-dark px-4 py-3">
     <div class="container d-flex justify-content-between align-items-center">
       <span class="navbar-brand">📊 Dashboard Admin</span>
-      <a href="../logout.php" class="btn btn-logout btn-sm">Logout</a>
+      <a href="#" class="btn btn-logout btn-sm">Logout</a>
     </div>
   </nav>
 
   <!-- Header -->
   <div class="welcome">
-    <h4>Selamat Datang, <span class="text-primary"><?= htmlspecialchars($_SESSION['admin']); ?></span> 👋</h4>
+    <h4>Selamat Datang, <span class="text-primary">Admin</span> 👋</h4>
   </div>
 
   <!-- Dashboard Cards -->
@@ -129,29 +124,29 @@ include '../includes/auth.php';
     <div class="card">
       <div class="card-icon">📁</div>
       <h6>Data Profil</h6>
-      <a href="profil.php" class="btn btn-manage w-100">Kelola</a>
+      <a href="#" class="btn btn-manage w-100">Kelola</a>
     </div>
 
     <div class="card">
       <div class="card-icon">🎨</div>
       <h6>Karya</h6>
-      <a href="karya.php" class="btn btn-manage w-100">Kelola</a>
+      <a href="#" class="btn btn-manage w-100">Kelola</a>
     </div>
 
     <div class="card">
       <div class="card-icon">📰</div>
       <h6>Berita</h6>
-      <a href="berita.php" class="btn btn-manage w-100">Kelola</a>
+      <a href="#" class="btn btn-manage w-100">Kelola</a>
     </div>
 
     <div class="card">
       <div class="card-icon">🖼️</div>
       <h6>Galeri</h6>
-      <a href="galeri.php" class="btn btn-manage w-100">Kelola</a>
+      <a href="#" class="btn btn-manage w-100">Kelola</a>
     </div>
   </div>
 
-  <footer>© <?= date('Y'); ?> Laboratorium Multimedia & Mobile Tech | Politeknik Negeri Malang</footer>
+  <footer>© 2025 Laboratorium Multimedia & Mobile Tech | Politeknik Negeri Malang</footer>
 
 </body>
 </html>

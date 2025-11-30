@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Karya & Prestasi | Laboratorium MMT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f9ff, #eaf1fb);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    header {
+      background: #0056b3;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .section-title {
+      font-weight: 700;
+      color: #002b5c;
+      margin: 40px 0 30px;
+      text-align: center;
+      position: relative;
+    }
+
+    .section-title::after {
+      content: "";
+      display: block;
+      width: 80px;
+      height: 4px;
+      background: #ffc107;
+      margin: 10px auto 0;
+      border-radius: 2px;
+    }
+
+    .karya-card {
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      background: #fff;
+    }
+
+    .karya-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+
+    .karya-card img {
+      height: 220px;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    .karya-card .card-body {
+      padding: 18px;
+    }
+
+    .karya-card .card-title {
+      color: #0056b3;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .karya-card .card-text {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .karya-card small {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    footer {
+      background: #002b5c;
+      color: #fff;
+      text-align: center;
+      padding: 15px 0;
+      margin-top: 60px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .karya-card img {
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h2>Laboratorium MMT - Karya & Prestasi</h2>
+  </header>
+
+  <!-- KARYA & PRESTASI -->
+  <section class="container-lg px-4">
+    <h3 class="section-title">Karya & Prestasi Mahasiswa</h3>
+
+    <div class="row">
+      <!-- Kartu Karya 1 -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card karya-card">
+          <img src="assets/img/ui_kampus.jpg" alt="Desain UI Aplikasi Kampus">
+          <div class="card-body">
+            <h5 class="card-title">Desain UI Aplikasi Kampus</h5>
+            <p class="card-text">Desain antarmuka aplikasi akademik berbasis mobile yang menampilkan sistem informasi mahasiswa.</p>
+            <small>Tahun: 2024</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu Karya 2 -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card karya-card">
+          <img src="assets/img/game_math.jpg" alt="Game Edukasi Matematika">
+          <div class="card-body">
+            <h5 class="card-title">Game Edukasi Matematika</h5>
+            <p class="card-text">Permainan interaktif untuk anak-anak dalam memahami operasi dasar matematika dengan cara menyenangkan.</p>
+            <small>Tahun: 2023</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu Karya 3 -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card karya-card">
+          <img src="assets/img/absensi_app.jpg" alt="Aplikasi Mobile Absensi">
+          <div class="card-body">
+            <h5 class="card-title">Aplikasi Mobile Absensi</h5>
+            <p class="card-text">Sistem absensi digital berbasis GPS yang dirancang untuk efisiensi dan kehadiran real-time mahasiswa.</p>
+            <small>Tahun: 2022</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu Karya 4 -->
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card karya-card">
+          <img src="assets/img/poster_showcase.jpg" alt="Poster Showcase MMT">
+          <div class="card-body">
+            <h5 class="card-title">Poster Showcase MMT</h5>
+            <p class="card-text">Poster interaktif untuk memamerkan hasil karya mahasiswa MMT dalam ajang tahunan fakultas.</p>
+            <small>Tahun: 2021</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2025 Laboratorium MMT - Semua Hak Dilindungi
+  </footer>
+
+</body>
+</html>

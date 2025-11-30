@@ -2,19 +2,9 @@
 include 'includes/header.php';
 
 // =====================================
-// PAGINATION CONFIG
+// GALERI TERBARU (tanpa pagination)
 // =====================================
-$limit = 12; // jumlah gambar per halaman
-$page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
-// Hitung total gambar
-$resTotal = pg_query($conn, "SELECT COUNT(*) AS total FROM galeri");
-$totalData = pg_fetch_assoc($resTotal)['total'];
-$totalPage = ceil($totalData / $limit);
-
-// Ambil gambar/video terbaru sesuai halaman
-$galeri_paginated = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT $limit OFFSET $offset");
+$galeri_terbaru = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT 6");
 ?>
 
 <!-- ============================= -->
@@ -23,11 +13,6 @@ $galeri_paginated = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT
 <section class="container-lg px-4 my-5">
 
   <h3 class="text-primary fw-bold mb-4 text-center">Galeri Multimedia</h3>
-
-  <?php  
-  // Ambil hanya 6 terbaru untuk carousel
-  $galeri_terbaru = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT 6");
-  ?>
 
   <!-- ============================= -->
   <!-- TERBARU FULL WIDTH -->
@@ -144,35 +129,9 @@ $galeri_paginated = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT
 
   <?php endwhile; ?>
 
-  <!-- ============================= -->
-  <!-- PAGINATION -->
-  <!-- ============================= -->
-  <div class="d-flex justify-content-center my-5">
-    <nav aria-label="Page navigation">
-      <ul class="pagination">
-
-        <?php if ($page > 1): ?>
-          <li class="page-item"><a class="page-link" href="?page=<?= $page - 1 ?>">«</a></li>
-        <?php endif; ?>
-
-        <?php for ($i = 1; $i <= $totalPage; $i++): ?>
-          <li class="page-item <?= ($i == $page ? 'active' : '') ?>">
-            <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-          </li>
-        <?php endfor; ?>
-
-        <?php if ($page < $totalPage): ?>
-          <li class="page-item"><a class="page-link" href="?page=<?= $page + 1 ?>">»</a></li>
-        <?php endif; ?>
-
-      </ul>
-    </nav>
-  </div>
-
 </section>
 
 <?php include 'includes/footer.php'; ?>
-
 
 <!-- ============================= -->
 <!-- MODAL GAMBAR / VIDEO -->
@@ -193,7 +152,7 @@ $galeri_paginated = pg_query($conn, "SELECT * FROM galeri ORDER BY id DESC LIMIT
 
 
 <!-- ============================= -->
-<!-- STYLE -->
+<!-- STYLE (TIDAK DIUBAH) -->
 <!-- ============================= -->
 <style>
 section.container-lg {
@@ -300,7 +259,6 @@ section.container-lg {
 }
 </style>
 
-
 <!-- ============================= -->
 <!-- SCRIPT MODAL + CAROUSEL -->
 <!-- ============================= -->
@@ -308,49 +266,56 @@ section.container-lg {
 // Modal foto / video
 document.querySelectorAll('.kategori-img, .terbaru-img').forEach(media => {
   media.addEventListener('click', () => {
-
     const container = document.getElementById('modalMediaContainer');
     container.innerHTML = ""; 
-
     document.getElementById('imageTitle').innerText = media.dataset.title;
 
     if (media.dataset.video) {
-      container.innerHTML = `
-        <video controls autoplay style="width:100%;border-radius:10px;">
-          <source src="${media.dataset.video}" type="video/mp4">
-        </video>
-      `;
+      container.innerHTML = `<video controls autoplay style="width:100%;border-radius:10px;">
+          <source src="${media.dataset.video}" type="video/mp4"></video>`;
+    } 
+    else {
+      container.innerHTML = `<img src="${media.dataset.img}" class="img-fluid rounded">`;
     }
-    else if (media.dataset.img) {
-      container.innerHTML = `
-        <img src="${media.dataset.img}" class="img-fluid rounded">
-      `;
-    }
-
   });
 });
 
-// Carousel
+
+// =============================
+// CAROUSEL TANPA RUANG KOSONG
+// =============================
 document.addEventListener('DOMContentLoaded', function () {
+
   const track   = document.querySelector('.terbaru-track');
   const slides  = Array.from(document.querySelectorAll('.terbaru-slide'));
-  const btnPrev = document.querySelector('.terbaru-prev');
-  const btnNext = document.querySelector('.terbaru-next');
+  const prevBtn = document.querySelector('.terbaru-prev');
+  const nextBtn = document.querySelector('.terbaru-next');
 
-  if (!track || slides.length === 0) return;
+  let index = 0;
+  const maxIndex = slides.length - 1;
 
-  let currentIndex = 0;
-
-  function goToSlide(index) {
-    currentIndex = Math.max(0, Math.min(index, slides.length - 1));
+  function updateCarousel() {
     const slideWidth = slides[0].offsetWidth + 20;
-    const offset = slideWidth * currentIndex;
-    track.style.transform = `translateX(-${offset}px)`;
+    track.style.transform = `translateX(-${index * slideWidth}px)`;
+
+    // Disable tombol saat mentok
+    prevBtn.style.opacity = index === 0 ? "0.2" : "1";
+    prevBtn.style.pointerEvents = index === 0 ? "none" : "auto";
+
+    nextBtn.style.opacity = index === maxIndex ? "0.2" : "1";
+    nextBtn.style.pointerEvents = index === maxIndex ? "none" : "auto";
   }
 
-  btnNext.addEventListener('click', () => goToSlide(currentIndex + 1));
-  btnPrev.addEventListener('click', () => goToSlide(currentIndex - 1));
+  nextBtn.addEventListener('click', () => {
+    if (index < maxIndex) index++;
+    updateCarousel();
+  });
 
-  goToSlide(0);
+  prevBtn.addEventListener('click', () => {
+    if (index > 0) index--;
+    updateCarousel();
+  });
+
+  updateCarousel();
 });
 </script>

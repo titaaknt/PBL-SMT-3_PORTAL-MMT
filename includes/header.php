@@ -42,9 +42,9 @@ include 'includes/config.php';
 <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
   <div class="container-fluid px-4">
     <a class="navbar-brand text-white d-flex align-items-center" href="index.php">
-      <img src="assets/img/jti_polinema.png" alt="Polinema" class="me-2" style="height:50px;">
+      <img src="assets/img/logolabmmt.png" alt="Polinema" class="me-2" style="height:50px;">
       <div class="lh-sm">
-        <div class="fw-bold" style="font-size: 14px;">JURUSAN TEKNOLOGI INFORMASI</div>
+        <div class="fw-bold" style="font-size: 14px;">LABORATORIUM MULTIMEDIA & MOBILE TECH</div>
         <div style="font-size: 13px;">POLITEKNIK NEGERI MALANG</div>
       </div>
     </a>
