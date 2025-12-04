@@ -4,7 +4,7 @@ include '../includes/auth.php';
 
 $mode = "";
 
-// tombol tambah baru
+// tombol tambah
 if (isset($_GET['aksi']) && $_GET['aksi'] == "tambah") {
     $mode = "tambah";
 }
@@ -68,7 +68,7 @@ if (isset($_POST['simpan_edit'])) {
 }
 
 /* ====================
-   HAPUS DATA
+   HAPUS
 ==================== */
 if (isset($_GET['hapus'])) {
     pg_query($conn, "DELETE FROM karya WHERE id={$_GET['hapus']}");
@@ -87,28 +87,10 @@ if (isset($_GET['hapus'])) {
 
 <style>
   body { background:#f4f7fb; font-family:'Poppins',sans-serif; }
-
-  .navbar {
-      background:#003c8f;
-      padding:15px 30px;
-  }
+  .navbar { background:#003c8f; padding:15px 30px; }
   .navbar-brand { color:white !important; font-weight:600; }
-
-  .back-icon{
-      font-size:27px;
-      color:white;
-      margin-right:12px;
-      text-decoration:none;
-  }
-
-  .container-box{
-      background:white;
-      padding:25px;
-      border-radius:15px;
-      box-shadow:0 4px 15px rgba(0,0,0,0.08);
-      margin-top:20px;
-  }
-
+  .back-icon{ font-size:27px; color:white; margin-right:12px; text-decoration:none; }
+  .container-box{ background:white; padding:25px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.08); margin-top:20px; }
   .action-btns{ display:flex; gap:10px; }
   .col-desc{ max-width:260px; font-size:13px; white-space:normal; }
 </style>
@@ -116,7 +98,6 @@ if (isset($_GET['hapus'])) {
 
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
     <div class="d-flex align-items-center">
         <a href="dashboard.php" class="back-icon"><i class="bi bi-arrow-left-circle"></i></a>
@@ -137,13 +118,9 @@ if (isset($_GET['hapus'])) {
     <form method="post" enctype="multipart/form-data" class="mb-4">
 
         <input name="judul" class="form-control mb-2" placeholder="Judul karya" required>
-
         <input name="kategori" class="form-control mb-2" placeholder="Kategori karya" required>
-
         <input name="tanggal" type="date" class="form-control mb-2" required>
-
         <textarea name="deskripsi" class="form-control mb-2" rows="3" placeholder="Deskripsi..." required></textarea>
-
         <input type="file" name="gambar" class="form-control mb-3" required>
 
         <button name="simpan_tambah" class="btn btn-success">Simpan</button>
@@ -160,13 +137,13 @@ if (isset($_GET['hapus'])) {
         <input type="hidden" name="gambar_lama" value="<?= $editData['gambar'] ?>">
 
         <input name="judul" class="form-control mb-2"
-               value="<?= htmlspecialchars($editData['judul']) ?>" required>
+            value="<?= htmlspecialchars($editData['judul']) ?>" required>
 
         <input name="kategori" class="form-control mb-2"
-               value="<?= htmlspecialchars($editData['kategori']) ?>" required>
+            value="<?= htmlspecialchars($editData['kategori']) ?>" required>
 
         <input name="tanggal" type="date" class="form-control mb-2"
-               value="<?= date('Y-m-d', strtotime($editData['tanggal'])) ?>" required>
+            value="<?= date('Y-m-d', strtotime($editData['tanggal'])) ?>" required>
 
         <textarea name="deskripsi" class="form-control mb-2" rows="3"><?= htmlspecialchars($editData['deskripsi']) ?></textarea>
 
@@ -182,7 +159,7 @@ if (isset($_GET['hapus'])) {
     </form>
     <?php endif; ?>
 
-    <!-- TABLE DATA -->
+    <!-- TABLE -->
     <table class="table table-bordered table-striped">
         <thead class="table-primary">
             <tr>
@@ -195,36 +172,46 @@ if (isset($_GET['hapus'])) {
                 <th width="140" class="text-center">Aksi</th>
             </tr>
         </thead>
-
         <tbody>
+
         <?php
         $no = 1;
-        $q = pg_query($conn, "SELECT * FROM karya ORDER BY tanggal DESC");
+        $q = pg_query($conn, "SELECT * FROM karya ORDER BY id DESC");
         while ($d = pg_fetch_assoc($q)):
+
+            // AUTO-LINK URL TANPA MERUSAK HTML
+            $desc_full = htmlspecialchars($d['deskripsi']);
+            $desc_full = preg_replace(
+                '/(https?:\/\/[^\s]+)/',
+                '<a href="$1" target="_blank">$1</a>',
+                $desc_full
+            );
+
+            // RINGKASAN (AMAN) — tanpa HTML
+            $desc_short = substr(strip_tags($desc_full), 0, 80) . "...";
         ?>
-            <tr>
-                <td><?= $no++ ?></td>
-                <td><?= htmlspecialchars($d['judul']) ?></td>
-                <td><?= htmlspecialchars($d['kategori']) ?></td>
 
-                <td class="col-desc">
-                    <?= substr(strip_tags($d['deskripsi']), 0, 80) ?>...
-                </td>
+        <tr>
+            <td><?= $no++ ?></td>
+            <td><?= htmlspecialchars($d['judul']) ?></td>
+            <td><?= htmlspecialchars($d['kategori']) ?></td>
 
-                <td><?= date("d M Y", strtotime($d['tanggal'])) ?></td>
+            <td class="col-desc"><?= $desc_short ?></td>
 
-                <td><img src="../assets/img/<?= $d['gambar'] ?>" width="90" class="rounded"></td>
+            <td><?= date("d M Y", strtotime($d['tanggal'])) ?></td>
 
-                <td class="text-center">
-                    <div class="action-btns">
-                        <a href="karya.php?edit=<?= $d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
-                        <a href="karya.php?hapus=<?= $d['id'] ?>"
-                           onclick="return confirm('Hapus karya ini?')"
-                           class="btn btn-danger btn-sm px-3">Hapus</a>
-                    </div>
-                </td>
-            </tr>
+            <td><img src="../assets/img/<?= $d['gambar'] ?>" width="90" class="rounded"></td>
+
+            <td class="text-center">
+                <div class="action-btns">
+                    <a href="karya.php?edit=<?= $d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
+                    <a href="karya.php?hapus=<?= $d['id'] ?>" onclick="return confirm('Hapus karya ini?')" class="btn btn-danger btn-sm px-3">Hapus</a>
+                </div>
+            </td>
+        </tr>
+
         <?php endwhile; ?>
+
         </tbody>
     </table>
 
