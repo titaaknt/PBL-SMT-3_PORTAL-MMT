@@ -17,7 +17,7 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == "tambah") {
 $editData = null;
 if (isset($_GET['edit'])) {
     $mode = "edit";
-    $id_edit = $_GET['edit'];
+    $id_edit = (int) $_GET['edit'];
     $q = pg_query($conn, "SELECT * FROM galeri WHERE id=$id_edit");
     $editData = pg_fetch_assoc($q);
 }
@@ -26,17 +26,29 @@ if (isset($_GET['edit'])) {
    SIMPAN DATA TAMBAH
 ======================== */
 if (isset($_POST['simpan_tambah'])) {
-    $judul = $_POST['judul'];
-    $jenis = $_POST['jenis'];
-    $kategori_id = $_POST['kategori_id'];
+    $judul = pg_escape_string($conn, trim($_POST['judul']));
+    $jenis = pg_escape_string($conn, trim($_POST['jenis']));
 
-    $file = $_FILES['file']['name'];
-    move_uploaded_file($_FILES['file']['tmp_name'], "../assets/img/" . $file);
+    // jika kategori tidak dipilih atau kosong -> simpan NULL
+    $kategori_id = isset($_POST['kategori_id']) && $_POST['kategori_id'] !== '' ? intval($_POST['kategori_id']) : null;
 
-    pg_query($conn, "
+    // file upload
+    $file_name = '';
+    if (!empty($_FILES['file']['name'])) {
+        $file_name = basename($_FILES['file']['name']);
+        $target = "../assets/img/" . $file_name;
+        // simple move (kamu bisa tambah validasi tipe/ukuran jika mau)
+        move_uploaded_file($_FILES['file']['tmp_name'], $target);
+    }
+
+    // bangun query dengan kategori_id NULL atau angka
+    $kategori_sql = is_null($kategori_id) ? "NULL" : $kategori_id;
+
+    $sql = "
         INSERT INTO galeri (judul, jenis, kategori_id, file_path, admin_id)
-        VALUES ('$judul', '$jenis', $kategori_id, '$file', 1)
-    ");
+        VALUES ('{$judul}', '{$jenis}', {$kategori_sql}, '{$file_name}', 1)
+    ";
+    pg_query($conn, $sql);
 
     header("Location: galeri.php");
     exit;
@@ -46,27 +58,32 @@ if (isset($_POST['simpan_tambah'])) {
    SIMPAN EDIT
 ======================== */
 if (isset($_POST['simpan_edit'])) {
-    $id = $_POST['id'];
-    $judul = $_POST['judul'];
-    $jenis = $_POST['jenis'];
-    $kategori_id = $_POST['kategori_id'];
-    $file_lama = $_POST['file_lama'];
+    $id = (int) $_POST['id'];
+    $judul = pg_escape_string($conn, trim($_POST['judul']));
+    $jenis = pg_escape_string($conn, trim($_POST['jenis']));
+    $kategori_id = isset($_POST['kategori_id']) && $_POST['kategori_id'] !== '' ? intval($_POST['kategori_id']) : null;
+    $file_lama = pg_escape_string($conn, $_POST['file_lama']);
 
+    // jika ada file baru, upload dan gunakan
     if (!empty($_FILES['file']['name'])) {
-        $file = $_FILES['file']['name'];
-        move_uploaded_file($_FILES['file']['tmp_name'], "../assets/img/" . $file);
+        $file = basename($_FILES['file']['name']);
+        $target = "../assets/img/" . $file;
+        move_uploaded_file($_FILES['file']['tmp_name'], $target);
     } else {
         $file = $file_lama;
     }
 
-    pg_query($conn, "
+    $kategori_sql = is_null($kategori_id) ? "NULL" : $kategori_id;
+
+    $sql = "
         UPDATE galeri SET 
-            judul='$judul',
-            jenis='$jenis',
-            kategori_id=$kategori_id,
-            file_path='$file'
+            judul='{$judul}',
+            jenis='{$jenis}',
+            kategori_id={$kategori_sql},
+            file_path='{$file}'
         WHERE id=$id
-    ");
+    ";
+    pg_query($conn, $sql);
 
     header("Location: galeri.php");
     exit;
@@ -76,7 +93,8 @@ if (isset($_POST['simpan_edit'])) {
    HAPUS DATA
 ======================== */
 if (isset($_GET['hapus'])) {
-    pg_query($conn, "DELETE FROM galeri WHERE id={$_GET['hapus']}");
+    $hapus_id = (int) $_GET['hapus'];
+    pg_query($conn, "DELETE FROM galeri WHERE id={$hapus_id}");
     header("Location: galeri.php");
     exit;
 }
@@ -116,7 +134,7 @@ if (isset($_GET['hapus'])) {
 
   .action-btns{ display:flex; gap:10px; }
   .col-desc{ max-width:260px; font-size:13px; white-space:normal; }
-  .preview-file{ width:180px; border-radius:8px; }
+  .preview-file{ width:180px; border-radius:8px; object-fit:cover; }
 </style>
 </head>
 
@@ -134,7 +152,7 @@ if (isset($_GET['hapus'])) {
 <div class="container container-box">
 
     <div class="d-flex justify-content-between mb-3">
-        <h4 class="text-primary fw-bold">Kelola Galeri & Dokumentasi</h4>
+        <h4 class="text-primary fw-bold">Kelola Galeri</h4>
         <a href="galeri.php?aksi=tambah" class="btn btn-primary">+ Tambah Baru</a>
     </div>
 
@@ -151,13 +169,14 @@ if (isset($_GET['hapus'])) {
             <option value="video">Video</option>
         </select>
 
-        <select name="kategori_id" class="form-control mb-2" required>
-            <option value="">-- Pilih Kategori --</option>
+        <!-- kategori sekarang optional: tidak required, ada pilihan kosong -->
+        <select name="kategori_id" class="form-control mb-2">
+            <option value="">-- Tanpa Kategori --</option>
             <?php
             $kat = pg_query($conn, "SELECT * FROM kategori_galeri ORDER BY judul ASC");
             while ($k = pg_fetch_assoc($kat)):
             ?>
-                <option value="<?= $k['id'] ?>"><?= htmlspecialchars($k['judul']) ?></option>
+                <option value="<?= (int)$k['id'] ?>"><?= htmlspecialchars($k['judul']) ?></option>
             <?php endwhile; ?>
         </select>
 
@@ -173,8 +192,8 @@ if (isset($_GET['hapus'])) {
     <?php if ($mode == "edit"): ?>
     <form method="post" enctype="multipart/form-data" class="mb-4">
 
-        <input type="hidden" name="id" value="<?= $editData['id'] ?>">
-        <input type="hidden" name="file_lama" value="<?= $editData['file_path'] ?>">
+        <input type="hidden" name="id" value="<?= (int)$editData['id'] ?>">
+        <input type="hidden" name="file_lama" value="<?= htmlspecialchars($editData['file_path']) ?>">
 
         <input name="judul" class="form-control mb-2"
                value="<?= htmlspecialchars($editData['judul']) ?>" required>
@@ -184,13 +203,14 @@ if (isset($_GET['hapus'])) {
             <option value="video" <?= $editData['jenis']=='video'?'selected':'' ?>>Video</option>
         </select>
 
-        <select name="kategori_id" class="form-control mb-2" required>
+        <select name="kategori_id" class="form-control mb-2">
+            <option value="">-- Tanpa Kategori --</option>
             <?php
             $kat = pg_query($conn, "SELECT * FROM kategori_galeri ORDER BY judul ASC");
             while ($k = pg_fetch_assoc($kat)):
                 $sel = ($editData['kategori_id'] == $k['id']) ? "selected" : "";
             ?>
-                <option value="<?= $k['id'] ?>" <?= $sel ?>>
+                <option value="<?= (int)$k['id'] ?>" <?= $sel ?>>
                     <?= htmlspecialchars($k['judul']) ?>
                 </option>
             <?php endwhile; ?>
@@ -201,9 +221,9 @@ if (isset($_GET['hapus'])) {
         <p class="small text-secondary mb-1">File saat ini:</p>
 
         <?php if ($editData['jenis'] == "foto"): ?>
-            <img src="../assets/img/<?= $editData['file_path'] ?>" class="preview-file mb-2">
+            <img src="../assets/img/<?= htmlspecialchars($editData['file_path']) ?>" class="preview-file mb-2">
         <?php else: ?>
-            <video src="../assets/img/<?= $editData['file_path'] ?>" class="preview-file mb-2" controls></video>
+            <video src="../assets/img/<?= htmlspecialchars($editData['file_path']) ?>" class="preview-file mb-2" controls></video>
         <?php endif; ?>
 
         <br>
@@ -241,21 +261,21 @@ if (isset($_GET['hapus'])) {
             <tr>
                 <td><?= $no++ ?></td>
                 <td><?= htmlspecialchars($d['judul']) ?></td>
-                <td><?= $d['jenis'] ?></td>
-                <td><?= htmlspecialchars($d['kategori']) ?></td>
+                <td><?= htmlspecialchars($d['jenis']) ?></td>
+                <td><?= $d['kategori'] ? htmlspecialchars($d['kategori']) : '-' ?></td>
 
                 <td>
                     <?php if ($d['jenis'] == "foto"): ?>
-                        <img src="../assets/img/<?= $d['file_path'] ?>" width="90" class="rounded">
+                        <img src="../assets/img/<?= htmlspecialchars($d['file_path']) ?>" width="90" class="rounded">
                     <?php else: ?>
-                        <video src="../assets/img/<?= $d['file_path'] ?>" width="120" controls></video>
+                        <video src="../assets/img/<?= htmlspecialchars($d['file_path']) ?>" width="120" controls></video>
                     <?php endif; ?>
                 </td>
 
                 <td class="text-center">
                     <div class="action-btns">
-                        <a href="galeri.php?edit=<?= $d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
-                        <a href="galeri.php?hapus=<?= $d['id'] ?>"
+                        <a href="galeri.php?edit=<?= (int)$d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
+                        <a href="galeri.php?hapus=<?= (int)$d['id'] ?>"
                            onclick="return confirm('Hapus file ini?')"
                            class="btn btn-danger btn-sm px-3">Hapus</a>
                     </div>
@@ -264,7 +284,6 @@ if (isset($_GET['hapus'])) {
         <?php endwhile; ?>
         </tbody>
     </table>
-
 </div>
 </body>
 </html>
