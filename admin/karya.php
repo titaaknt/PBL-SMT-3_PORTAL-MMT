@@ -13,7 +13,7 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == "tambah") {
 $editData = null;
 if (isset($_GET['edit'])) {
     $mode = "edit";
-    $id_edit = $_GET['edit'];
+    $id_edit = (int)$_GET['edit'];
     $q = pg_query($conn, "SELECT * FROM karya WHERE id=$id_edit");
     $editData = pg_fetch_assoc($q);
 }
@@ -22,13 +22,18 @@ if (isset($_GET['edit'])) {
    SIMPAN TAMBAH
 ==================== */
 if (isset($_POST['simpan_tambah'])) {
-    $judul = $_POST['judul'];
-    $kategori = $_POST['kategori'];
-    $tanggal = $_POST['tanggal'];
-    $deskripsi = $_POST['deskripsi'];
+    // escape input agar tanda kutip / newline aman
+    $judul     = pg_escape_string($conn, $_POST['judul'] ?? '');
+    $kategori  = pg_escape_string($conn, $_POST['kategori'] ?? '');
+    $tanggal   = pg_escape_string($conn, $_POST['tanggal'] ?? '');
+    $deskripsi = pg_escape_string($conn, $_POST['deskripsi'] ?? '');
 
-    $gambar = $_FILES['gambar']['name'];
-    move_uploaded_file($_FILES['gambar']['tmp_name'], "../assets/img/" . $gambar);
+    $gambar = '';
+    if (!empty($_FILES['gambar']['name'])) {
+        $gambar_raw = basename($_FILES['gambar']['name']);
+        $gambar = pg_escape_string($conn, $gambar_raw);
+        move_uploaded_file($_FILES['gambar']['tmp_name'], "../assets/img/" . $gambar);
+    }
 
     pg_query($conn, "INSERT INTO karya (judul, kategori, tanggal, deskripsi, gambar)
                      VALUES ('$judul', '$kategori', '$tanggal', '$deskripsi', '$gambar')");
@@ -41,15 +46,16 @@ if (isset($_POST['simpan_tambah'])) {
    SIMPAN EDIT
 ==================== */
 if (isset($_POST['simpan_edit'])) {
-    $id = $_POST['id'];
-    $judul = $_POST['judul'];
-    $kategori = $_POST['kategori'];
-    $tanggal = $_POST['tanggal'];
-    $deskripsi = $_POST['deskripsi'];
-    $gambar_lama = $_POST['gambar_lama'];
+    $id = (int)$_POST['id'];
+    $judul     = pg_escape_string($conn, $_POST['judul'] ?? '');
+    $kategori  = pg_escape_string($conn, $_POST['kategori'] ?? '');
+    $tanggal   = pg_escape_string($conn, $_POST['tanggal'] ?? '');
+    $deskripsi = pg_escape_string($conn, $_POST['deskripsi'] ?? '');
+    $gambar_lama = pg_escape_string($conn, $_POST['gambar_lama'] ?? '');
 
     if (!empty($_FILES['gambar']['name'])) {
-        $gambar = $_FILES['gambar']['name'];
+        $gambar_raw = basename($_FILES['gambar']['name']);
+        $gambar = pg_escape_string($conn, $gambar_raw);
         move_uploaded_file($_FILES['gambar']['tmp_name'], "../assets/img/" . $gambar);
     } else {
         $gambar = $gambar_lama;
@@ -71,7 +77,8 @@ if (isset($_POST['simpan_edit'])) {
    HAPUS
 ==================== */
 if (isset($_GET['hapus'])) {
-    pg_query($conn, "DELETE FROM karya WHERE id={$_GET['hapus']}");
+    $idh = (int)$_GET['hapus'];
+    pg_query($conn, "DELETE FROM karya WHERE id=$idh");
     header("Location: karya.php");
     exit;
 }
@@ -92,7 +99,15 @@ if (isset($_GET['hapus'])) {
   .back-icon{ font-size:27px; color:white; margin-right:12px; text-decoration:none; }
   .container-box{ background:white; padding:25px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.08); margin-top:20px; }
   .action-btns{ display:flex; gap:10px; }
-  .col-desc{ max-width:260px; font-size:13px; white-space:normal; }
+  .col-desc{
+      max-width:260px;
+      font-size:13px;
+      white-space: normal;        /* allow wrapping */
+      word-break: break-word;     /* break long words/URLs */
+      overflow-wrap: break-word;  /* extra fallback */
+  }
+  /* Make table cell vertical align top so long text doesn't misalign image/buttons */
+  table.table td, table.table th { vertical-align: top; }
 </style>
 </head>
 
@@ -118,7 +133,14 @@ if (isset($_GET['hapus'])) {
     <form method="post" enctype="multipart/form-data" class="mb-4">
 
         <input name="judul" class="form-control mb-2" placeholder="Judul karya" required>
-        <input name="kategori" class="form-control mb-2" placeholder="Kategori karya" required>
+
+        <!-- Kategori sekarang pilihan (Karya / Prestasi) -->
+        <select name="kategori" class="form-control mb-2" required>
+            <option value="">-- Pilih Kategori --</option>
+            <option value="Karya">Karya</option>
+            <option value="Prestasi">Prestasi</option>
+        </select>
+
         <input name="tanggal" type="date" class="form-control mb-2" required>
         <textarea name="deskripsi" class="form-control mb-2" rows="3" placeholder="Deskripsi..." required></textarea>
         <input type="file" name="gambar" class="form-control mb-3" required>
@@ -133,14 +155,16 @@ if (isset($_GET['hapus'])) {
     <?php if ($mode == "edit"): ?>
     <form method="post" enctype="multipart/form-data" class="mb-4">
 
-        <input type="hidden" name="id" value="<?= $editData['id'] ?>">
-        <input type="hidden" name="gambar_lama" value="<?= $editData['gambar'] ?>">
+        <input type="hidden" name="id" value="<?= (int)$editData['id'] ?>">
+        <input type="hidden" name="gambar_lama" value="<?= htmlspecialchars($editData['gambar']) ?>">
 
         <input name="judul" class="form-control mb-2"
             value="<?= htmlspecialchars($editData['judul']) ?>" required>
 
-        <input name="kategori" class="form-control mb-2"
-            value="<?= htmlspecialchars($editData['kategori']) ?>" required>
+        <select name="kategori" class="form-control mb-2" required>
+            <option value="Karya" <?= ($editData['kategori'] == 'Karya' ? 'selected' : '') ?>>Karya</option>
+            <option value="Prestasi" <?= ($editData['kategori'] == 'Prestasi' ? 'selected' : '') ?>>Prestasi</option>
+        </select>
 
         <input name="tanggal" type="date" class="form-control mb-2"
             value="<?= date('Y-m-d', strtotime($editData['tanggal'])) ?>" required>
@@ -150,7 +174,7 @@ if (isset($_GET['hapus'])) {
         <input type="file" name="gambar" class="form-control mb-2">
 
         <p class="small text-secondary mb-1">Gambar saat ini:</p>
-        <img src="../assets/img/<?= $editData['gambar'] ?>" width="120" class="rounded mb-2">
+        <img src="../assets/img/<?= htmlspecialchars($editData['gambar']) ?>" width="120" class="rounded mb-2">
 
         <br>
         <button name="simpan_edit" class="btn btn-success">Simpan Perubahan</button>
@@ -176,19 +200,16 @@ if (isset($_GET['hapus'])) {
 
         <?php
         $no = 1;
+        // order by id DESC supaya entri baru muncul di atas
         $q = pg_query($conn, "SELECT * FROM karya ORDER BY id DESC");
         while ($d = pg_fetch_assoc($q)):
 
-            // AUTO-LINK URL TANPA MERUSAK HTML
-            $desc_full = htmlspecialchars($d['deskripsi']);
-            $desc_full = preg_replace(
-                '/(https?:\/\/[^\s]+)/',
-                '<a href="$1" target="_blank">$1</a>',
-                $desc_full
-            );
+            // AMAN: tampilkan ringkasan tanpa HTML, dengan htmlspecialchars dan memotong multibyte
+            $plain = strip_tags($d['deskripsi']);
+            // use mb_substr to handle UTF-8
+            $desc_short = htmlspecialchars(mb_substr($plain, 0, 80, 'UTF-8')) . (mb_strlen($plain, 'UTF-8') > 80 ? "..." : "");
 
-            // RINGKASAN (AMAN) — tanpa HTML
-            $desc_short = substr(strip_tags($desc_full), 0, 80) . "...";
+            // jika ingin menampilkan link aktif di modal/detail nanti, gunakan nl2br + htmlspecialchars
         ?>
 
         <tr>
@@ -200,12 +221,12 @@ if (isset($_GET['hapus'])) {
 
             <td><?= date("d M Y", strtotime($d['tanggal'])) ?></td>
 
-            <td><img src="../assets/img/<?= $d['gambar'] ?>" width="90" class="rounded"></td>
+            <td><img src="../assets/img/<?= htmlspecialchars($d['gambar']) ?>" width="90" class="rounded"></td>
 
             <td class="text-center">
                 <div class="action-btns">
-                    <a href="karya.php?edit=<?= $d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
-                    <a href="karya.php?hapus=<?= $d['id'] ?>" onclick="return confirm('Hapus karya ini?')" class="btn btn-danger btn-sm px-3">Hapus</a>
+                    <a href="karya.php?edit=<?= (int)$d['id'] ?>" class="btn btn-warning btn-sm px-3">Edit</a>
+                    <a href="karya.php?hapus=<?= (int)$d['id'] ?>" onclick="return confirm('Hapus karya ini?')" class="btn btn-danger btn-sm px-3">Hapus</a>
                 </div>
             </td>
         </tr>

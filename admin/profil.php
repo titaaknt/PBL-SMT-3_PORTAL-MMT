@@ -82,9 +82,15 @@ if (isset($_POST['simpan_profil'])) {
     .navbar-brand { color:white !important; font-weight:600; }
     .back-icon{ font-size:28px; color:white; margin-right:12px; text-decoration:none; }
     .container-box{ background:white; padding:30px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.06); margin-top:20px; }
-    img.preview { max-width:100%; border-radius:8px; margin-top:8px; }
+    img.preview {
+        max-width:100%;
+        border-radius:8px;
+        margin:8px auto;
+        display:block;
+    }
     .small-muted { font-size:0.9rem; color:#666; }
     /* keep layout same as before */
+    .icon-preview { font-size: 1.35rem; display:inline-flex; align-items:center; gap:8px; }
   </style>
 </head>
 <body>
@@ -135,7 +141,19 @@ if (isset($_POST['simpan_profil'])) {
     <div class="row g-2 mb-3 align-items-end">
       <div class="col-md-3">
         <label class="form-label">Icon</label>
-        <input id="contactIcon" class="form-control" placeholder="bi bi-envelope">
+        <!-- dropdown icon pilihan -->
+        <select id="contactIcon" class="form-control">
+          <option value="">-- Pilih Icon --</option>
+          <option value="bi bi-envelope">Email</option>
+          <option value="bi bi-telephone">Telepon</option>
+          <option value="bi bi-globe">Website</option>
+          <option value="bi bi-geo-alt">Alamat / Maps</option>
+          <option value="bi bi-facebook">Facebook</option>
+          <option value="bi bi-instagram">Instagram</option>
+          <option value="bi bi-youtube">YouTube</option>
+          <option value="bi bi-whatsapp">WhatsApp</option>
+          <option value="bi bi-linkedin">LinkedIn</option>
+        </select>
       </div>
 
       <div class="col-md-4">
@@ -145,7 +163,7 @@ if (isset($_POST['simpan_profil'])) {
 
       <div class="col-md-3">
         <label class="form-label">Keterangan</label>
-        <input id="contactKeterangan" class="form-control" placeholder="Email">
+        <input id="contactKeterangan" class="form-control" placeholder="Email ">
       </div>
 
       <div class="col-md-2">
@@ -186,6 +204,7 @@ const linkInput = document.getElementById('contactLink');
 const ketInput  = document.getElementById('contactKeterangan');
 const btnAdd    = document.getElementById('btnAddContact');
 const contactsJsonInput = document.getElementById('contacts_json');
+const iconPreview = document.getElementById('iconPreview');
 
 let editIndex = -1; // -1 = new
 
@@ -231,6 +250,7 @@ function startEdit(i) {
   iconInput.value = c.icon || '';
   linkInput.value = c.link || '';
   ketInput.value = c.keterangan || '';
+  updateIconPreview();
   btnAdd.textContent = 'Simpan';
 }
 
@@ -239,6 +259,7 @@ function clearForm() {
   iconInput.value = '';
   linkInput.value = '';
   ketInput.value = '';
+  updateIconPreview();
   btnAdd.textContent = 'Tambah';
 }
 
@@ -279,8 +300,21 @@ function escapeAttr(s) {
   return s.replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
+// ICON preview update
+function updateIconPreview() {
+  const v = iconInput.value;
+  if (!v) {
+    iconPreview.innerHTML = '<span class="text-muted">Preview icon akan muncul di sini</span>';
+  } else {
+    // tampilkan icon dan nama
+    iconPreview.innerHTML = `<i class="${escapeHtml(v)}"></i> <small>${escapeHtml(v)}</small>`;
+  }
+}
+iconInput.addEventListener('change', updateIconPreview);
+
 // initial render
 renderContacts();
+updateIconPreview();
 </script>
 </body>
 </html>
