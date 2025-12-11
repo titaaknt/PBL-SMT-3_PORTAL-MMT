@@ -196,8 +196,17 @@ if (isset($_POST['simpan_profil'])) {
 </div>
 
 <script>
-// initial contacts dari server
-let contacts = <?= json_encode($contacts, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>;
+// initial contacts dari server (aman walau null / string)
+let contactsRaw = <?= json_encode($contacts, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?> || [];
+// normalisasi: pastikan setiap item punya key icon, link, keterangan (string)
+let contacts = Array.isArray(contactsRaw) ? contactsRaw.map(c => {
+  return {
+    icon: (c && (c.icon ?? c['icon'] ?? '')) || '',
+    link: (c && (c.link ?? c['link'] ?? '')) || '',
+    keterangan: (c && (c.keterangan ?? c['keterangan'] ?? c['ket'] ?? '')) || ''
+  };
+}) : [];
+
 const tbody = document.querySelector('#contactsTable tbody');
 const iconInput = document.getElementById('contactIcon');
 const linkInput = document.getElementById('contactLink');
@@ -212,46 +221,66 @@ function renderContacts() {
   tbody.innerHTML = '';
   contacts.forEach((c, i) => {
     const tr = document.createElement('tr');
-    const iconHtml = c.icon ? `<i class="${escapeHtml(c.icon)}"></i> ${escapeHtml(c.icon)}` : '';
+
+    // icon: tampilkan ikon jika ada, tapi aman dari injection
+    const iconHtml = c.icon ? `<i class="${escapeHtml(c.icon)}" aria-hidden="true"></i> ${escapeHtml(c.icon)}` : '';
+
+    // link safe: jika kosong, tampilkan '-'
+    const linkCell = c.link ? `<a href="${escapeAttr(c.link)}" target="_blank" rel="noopener">${escapeHtml(c.link)}</a>` : '-';
+    const ketCell = escapeHtml(c.keterangan || '');
+
+    // PENTING: tambahkan type="button" supaya tidak submit form saat diklik
     tr.innerHTML = `
       <td>${i+1}</td>
       <td>${iconHtml}</td>
-      <td><a href="${escapeAttr(c.link)}" target="_blank" rel="noopener">${escapeHtml(c.link)}</a></td>
-      <td>${escapeHtml(c.keterangan)}</td>
+      <td>${linkCell}</td>
+      <td>${ketCell}</td>
       <td>
-        <button class="btn btn-sm btn-warning btn-edit" data-i="${i}">Edit</button>
-        <button class="btn btn-sm btn-danger btn-del" data-i="${i}">Hapus</button>
+        <button type="button" class="btn btn-sm btn-warning btn-edit" data-i="${i}">Edit</button>
+        <button type="button" class="btn btn-sm btn-danger btn-del" data-i="${i}">Hapus</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
-
-  // event
-  document.querySelectorAll('.btn-edit').forEach(b=>{
-    b.addEventListener('click', e=>{
-      const i = parseInt(e.currentTarget.dataset.i);
-      startEdit(i);
-    });
-  });
-  document.querySelectorAll('.btn-del').forEach(b=>{
-    b.addEventListener('click', e=>{
-      const i = parseInt(e.currentTarget.dataset.i);
-      if (confirm('Hapus kontak ini dari daftar?')) {
-        contacts.splice(i,1);
-        renderContacts();
-      }
-    });
-  });
 }
 
+// gunakan event delegation supaya handler tetap valid setelah re-render
+tbody.addEventListener('click', function(e) {
+  const editBtn = e.target.closest('.btn-edit');
+  const delBtn  = e.target.closest('.btn-del');
+  if (editBtn) {
+    const i = parseInt(editBtn.dataset.i);
+    if (!Number.isNaN(i)) startEdit(i);
+    return;
+  }
+  if (delBtn) {
+    const i = parseInt(delBtn.dataset.i);
+    if (!Number.isNaN(i) && confirm('Hapus kontak ini dari daftar?')) {
+      contacts.splice(i,1);
+      // jika sedang edit item yang dihapus, reset form
+      if (editIndex === i) clearForm();
+      renderContacts();
+    }
+    return;
+  }
+});
+
 function startEdit(i) {
+  // safety: pastikan index valid
+  if (typeof contacts[i] === 'undefined') {
+    alert('Data kontak tidak ditemukan.');
+    return;
+  }
   editIndex = i;
   const c = contacts[i];
+
+  // isi input dengan nilai mentah
   iconInput.value = c.icon || '';
   linkInput.value = c.link || '';
   ketInput.value = c.keterangan || '';
   updateIconPreview();
   btnAdd.textContent = 'Simpan';
+  try { linkInput.focus(); } catch(e){}
 }
 
 function clearForm() {
@@ -264,9 +293,9 @@ function clearForm() {
 }
 
 btnAdd.addEventListener('click', ()=> {
-  const icon = iconInput.value.trim();
-  const link = linkInput.value.trim();
-  const ket  = ketInput.value.trim();
+  const icon = (iconInput.value || '').trim();
+  const link = (linkInput.value || '').trim();
+  const ket  = (ketInput.value || '').trim();
 
   if (!icon && !link && !ket) {
     alert('Isi minimal satu field sebelum menambah.');
@@ -276,9 +305,11 @@ btnAdd.addEventListener('click', ()=> {
   const obj = { icon: icon, link: link, keterangan: ket };
 
   if (editIndex >= 0) {
+    // update existing
     contacts[editIndex] = obj;
   } else {
-    contacts.unshift(obj); // tampilkan di atas
+    // tambah baru di awal
+    contacts.unshift(obj);
   }
 
   renderContacts();
@@ -287,30 +318,35 @@ btnAdd.addEventListener('click', ()=> {
 
 // sebelum submit form, masukkan contacts JSON
 document.getElementById('profilForm').addEventListener('submit', function() {
-  contactsJsonInput.value = JSON.stringify(contacts);
+  // kirim versi yang "bersih" (hanya 3 field)
+  contactsJsonInput.value = JSON.stringify(contacts.map(c => ({
+    icon: c.icon || '',
+    link: c.link || '',
+    keterangan: c.keterangan || ''
+  })));
 });
 
 // helper
 function escapeHtml(s) {
-  if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  if (s === null || typeof s === 'undefined') return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 function escapeAttr(s) {
-  if (!s) return '';
-  return s.replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  if (s === null || typeof s === 'undefined') return '';
+  return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
-// ICON preview update
+// ICON preview update — aman jika element tidak ada
 function updateIconPreview() {
+  if (!iconPreview) return;
   const v = iconInput.value;
   if (!v) {
     iconPreview.innerHTML = '<span class="text-muted">Preview icon akan muncul di sini</span>';
   } else {
-    // tampilkan icon dan nama
-    iconPreview.innerHTML = `<i class="${escapeHtml(v)}"></i> <small>${escapeHtml(v)}</small>`;
+    iconPreview.innerHTML = `<i class="${escapeHtml(v)}" aria-hidden="true"></i> <small>${escapeHtml(v)}</small>`;
   }
 }
-iconInput.addEventListener('change', updateIconPreview);
+if (iconInput) iconInput.addEventListener('change', updateIconPreview);
 
 // initial render
 renderContacts();
