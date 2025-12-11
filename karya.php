@@ -1,9 +1,7 @@
 <?php 
 include 'includes/header.php';
 
-// =========================
 // PAGINATION
-// =========================
 $limit = 6; 
 $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
@@ -40,7 +38,7 @@ $query = pg_query($conn, "
     if (pg_num_rows($query) == 0) {
         echo '<p class="text-muted text-center">Belum ada karya yang ditambahkan.</p>';
     } else {
-        // kata-kata kunci untuk anggap prestasi (tidak mengubah DB)
+        // kata-kata kunci untuk anggap prestasi
         $prestasi_keywords = ['prestasi','juara','award','kompetisi','lomba','penghargaan','winner','finalis'];
 
         while ($data = pg_fetch_assoc($query)) {
@@ -54,7 +52,7 @@ $query = pg_query($conn, "
                 $sumber = trim($parts[1] ?? '');
             }
 
-            // tentukan jenis berdasarkan kolom kategori (tanpa ubah DB)
+            // tentukan jenis berdasarkan kolom kategori 
             $kategori_lower = strtolower($data['kategori'] ?? '');
             $isPrestasi = false;
             foreach ($prestasi_keywords as $kw) {
@@ -157,7 +155,7 @@ $query = pg_query($conn, "
 
       <div class="modal-body">
         <h4 id="karyaJudul" class="text-primary fw-bold mb-2"></h4>
-        <div id="karyaDeskripsi" class="text-muted mb-2" style="white-space:pre-wrap;"></div>
+        <div id="karyaDeskripsi" class="text-muted mb-2 karya-deskripsi"></div>
         <p id="karyaSumber" class="text-secondary fw-semibold"></p>
         <small id="karyaTanggal" class="text-muted"></small>
       </div>
@@ -168,14 +166,18 @@ $query = pg_query($conn, "
 
 <style>
 .karya-card {
-    transition: .3s;
-    border-radius: 10px;
-}
-.karya-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
+    border: none !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    overflow: hidden;
 
+    /* Soft shadow premium */
+    box-shadow:
+        0 8px 12px rgba(0, 0, 0, 0.04),
+        0 20px 40px rgba(0, 0, 0, 0.07) !important;
+
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 /* FIX FOOTER NEMPEL DI BAWAH */
 html, body {
     height: 100%;
@@ -200,6 +202,23 @@ main.flex-fill {
   color: #0d6efd;
   text-decoration: underline;
 }
+
+/* fix untuk teks super panjang di modal karya */
+.karya-deskripsi {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100%;
+}
+
+#karyaJudul {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100%;
+}
+
+
 </style>
 
 <script>
