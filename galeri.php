@@ -32,7 +32,7 @@ section.container-lg {
     transform: translateY(-6px);
     box-shadow:
         0 12px 22px rgba(0, 0, 0, 0.06),
-        0 28px 60px rgba(0, 0, 0, 0.10) !important;
+        0 28px 60px rgba(0, 0, 0, 0.10) !important;
 }
 /* ============================= */
 /* FULL-WIDTH UNTUK TERBARU */
@@ -607,7 +607,7 @@ section.container-lg {
 /**
  * GALERI.JS - JavaScript untuk Galeri Multimedia
  * Perbaikan: klik gambar/video, mencegah freeze saat modal video ditutup,
- *            filter dapat diklik, dan event propagation ditangani.
+ *            filter hanya memengaruhi kategori (TERBARU tidak ikut ter-filter).
  */
 
 /* ====== HELPER ====== */
@@ -728,24 +728,28 @@ document.addEventListener('click', function (e) {
   });
 })();
 
-/* ====== FILTER GLOBAL ====== */
+/* ====== FILTER GLOBAL (HANYA MEMENGARUHI KATEGORI, BUKAN TERBARU) ====== */
 (function(){
   const filterButtons = Array.from(document.querySelectorAll('.filter-option'));
   if (!filterButtons.length) return;
 
   filterButtons.forEach(btn => {
     btn.addEventListener('click', function (ev) {
-      ev.stopPropagation(); // important: prevent document click handlers interfering
+      ev.stopPropagation(); // penting: mencegah handler klik dokumen mengganggu
       ev.preventDefault();
 
       const filter = btn.dataset.filter; // all / foto / video
 
+      // update tombol aktif
       filterButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      // kategori items
-      document.querySelectorAll('.galeri-item').forEach(item => {
-        const type = item.dataset.mediaType || 'foto';
+      // HANYA filter item kategori (elemen yang berada di carousel kategori)
+      // Kita target .kategori-slide (juga .galeri-item agar kompatibel)
+      const kategoriItems = document.querySelectorAll('.kategori-slide, .galeri-item');
+
+      kategoriItems.forEach(item => {
+        const type = (item.dataset.mediaType || item.getAttribute('data-media-type') || 'foto').toString();
         if (filter === 'all' || type === filter) {
           item.classList.remove('hidden');
           item.style.display = '';
@@ -755,20 +759,10 @@ document.addEventListener('click', function (e) {
         }
       });
 
-      // terbaru slides
-      document.querySelectorAll('.terbaru-slide').forEach(s => {
-        const t = s.dataset.mediaType || 'foto';
-        if (filter === 'all' || t === filter) {
-          s.style.display = '';
-        } else {
-          s.style.display = 'none';
-        }
-      });
-
-      // reset transforms after layout change
-      const track = document.querySelector('.terbaru-track');
-      if (track) setTrackTransform(track, 0);
+      // Reset transform hanya untuk track kategori (biar carousel tidak tertinggal posisi saat beberapa item disembunyikan)
       document.querySelectorAll('.kategori-track').forEach(trackK => setTrackTransform(trackK, 0));
+
+      // NOTE: Tidak menyentuh .terbaru-slide / .terbaru-track — bagian "Terbaru" tidak akan ter-filter.
     });
   });
 })();
